@@ -14,13 +14,26 @@ __uint128_t gcd(__uint128_t num1, __uint128_t num2) {
     }
 }
 
-// Function to check if a number is prime
+// Function to check if a uint128-type number is prime
 bool prime(__uint128_t x) {
     if (x <= 1) return false;
     if (x <= 3) return true;
     if (x % 2 == 0 || x % 3 == 0) return false;
 
     for (__uint128_t i = 5; i * i <= x; i += 6) {
+        if (x % i == 0) return false;
+        if (x % (i + 2) == 0) return false;
+    }
+    return true;
+}
+
+// Function to check if an int-type number is prime
+bool int_prime(int x) {
+    if (x <= 1) return false;
+    if (x <= 3) return true;
+    if (x % 2 == 0 || x % 3 == 0) return false;
+
+    for (int i = 5; i * i <= x; i += 6) {
         if (x % i == 0) return false;
         if (x % (i + 2) == 0) return false;
     }
@@ -117,7 +130,6 @@ __uint128_t wheel_factorization(__uint128_t x) {
 
 __uint128_t quadratic_sieve(__uint128_t x) {
     printf("Quadratic sieve\n");
-    x++;
     /*
     For numbers with aprox. 20 to 40 digits, the best value for B
     in order to find B-smooth numbers is about 30 to 50. So the 
@@ -153,13 +165,50 @@ __uint128_t quadratic_sieve(__uint128_t x) {
 
     6. The solution vectors show the factors.
     */
+
+    // Step 1
+    int B = 53; // thought: we could initialize B with def instead,
+                // so that it's easily changeable
+    
+    // Step 2
+    int primes_arr[16]; // There are 16 primes before 53, including 53.
+    
+    int counter = 0;
+    for (int i = 2; i <= B; i++) {
+        if (int_prime(i)) {
+            primes_arr[counter] = i; // If a number from 2-53 is prime, 
+                                      // it is added to the array primes_arr
+            counter ++;
+        }
+    }
+    printf("AA\n");
+
+    for (int i = counter; i <= 16; i++) {
+        primes_arr[i] = 0; // the rest of the elements are initialized as 0 
+                           // (I KNOW there's a better way with malloc probably)
+    }
+    /*
+    printf("Size: %d\n", counter);
+    for (int i = 0; i < counter; i++) {
+        printf("%d\t", primes_arr[i]);
+    }
+    */
+
+    // Step 3
+    int calculated_arr[counter];
+    for (int i = 0; i < counter; i++) {
+        // find the square and do mod 2. The result is the i-th element
+        // of the array calculated_arr
+    }
+    x++; // to avoid errors
+
     return 0;
 }
 
 // Function to factorize the semiprime using various methods, 
 // depending on its size.
 int factorize(__uint128_t x) {
-    unsigned long long factor;
+    unsigned long long factor = 0; // Initialized so as not to get a warning
     if (x <= pow(10,6)) {
         factor = trial_division(x); // finds a factor using trial division
     } else if (x <= pow(10,8)) {            
