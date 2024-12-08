@@ -33,6 +33,13 @@ void gaussian_elimination_mod2(int matrix[MAX_ROWS][MAX_COLS], int rows, int col
                 }
             }
         }
+    printf("Matrix no. %d:\n", col);
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            printf("%d ", matrix[i][j]);
+        }
+        printf("\n");
+    }
     }
 
     printf("Reduced Matrix:\n");
@@ -61,6 +68,14 @@ int main() {
     
     int rows = 3; // Number of quadratic residues
     int cols = 3; // Number of primes in the factor base
+
+    printf("Starting Matrix:\n");
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            printf("%d ", matrix[i][j]);
+        }
+        printf("\n");
+    }
     
     // Perform Gaussian elimination modulo 2
     gaussian_elimination_mod2(matrix, rows, cols);
