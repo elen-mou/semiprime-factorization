@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/*
 // Function to check if a number is prime
 int int_prime(int n) {
     if (n <= 1) return 0;
@@ -13,7 +14,7 @@ int int_prime(int n) {
 }
 
 int main() {
-    int B = 53;  // You can set B to any desired value, e.g., 53
+    int B = 61;  // You can set B to any desired value, e.g., 53
     int *primes_arr;  // Pointer to store prime numbers
     int counter = 0;
 
@@ -42,12 +43,15 @@ int main() {
     }
 
     // Optional: print the prime numbers to verify
+    printf("Counter: %d\n", counter);
     printf("Primes up to %d: ", B);
+
     for (int i = 0; i < counter; i++) {
         printf("%d ", primes_arr[i]);
     }
     printf("\n");
 
+    /*
     // After primes are found, you can extend the array size to 16 and initialize the rest to 0
     primes_arr = realloc(primes_arr, 16 * sizeof(int)); // Reallocate for a fixed size array (16 elements)
     for (int i = counter; i < 16; i++) {
@@ -65,4 +69,9 @@ int main() {
     free(primes_arr);
 
     return 0;
+}
+*/
+
+__uint128_t prod_first_factors(__uint128_t n) {
+    for (__uint128_t i = 2; i <= )
 }
