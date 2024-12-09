@@ -77,7 +77,7 @@ int is_within_range(__uint128_t num) {
     return num <= max_value;  // Allow 2^127 as valid
 }
 
-// This function performs rial division function without unrolling
+// This function performs trial division function without unrolling
 __uint128_t trial_division(__uint128_t x) {
     printf("Trial division\n");
     // Check small primes first
@@ -171,28 +171,41 @@ __uint128_t quadratic_sieve(__uint128_t x) {
                 // so that it's easily changeable
     
     // Step 2
-    int primes_arr[16]; // There are 16 primes before 53, including 53.
+    int *primes_arr; // There are 16 primes before 53, including 53.
+                     // BUT WE DONT KNOW THATTTT - SO MALLOC
     
     int counter = 0;
     for (int i = 2; i <= B; i++) {
         if (int_prime(i)) {
-            primes_arr[counter] = i; // If a number from 2-53 is prime, 
-                                      // it is added to the array primes_arr
-            counter ++;
+            counter ++; // If a number from 2-53 is prime, 
+                        // the total count of counters is imcreased by 1.
         }
     }
     printf("AA\n");
 
-    for (int i = counter; i <= 16; i++) {
-        primes_arr[i] = 0; // the rest of the elements are initialized as 0 
-                           // (I KNOW there's a better way with malloc probably)
+    // Allocate memory dynamically for primes array
+    primes_arr = (int*)malloc(counter * sizeof(int));
+
+    if (primes_arr == NULL) {
+        // Handle memory allocation failure
+        printf("Memory allocation failed\n");
+        return 1;
     }
-    /*
+
+    // Reset counter to 0 and fill the array with primes
+    counter = 0;
+    for (int i = 2; i <= B; i++) {
+        if (int_prime(i)) {
+            primes_arr[counter] = i;
+            counter++;
+        }
+    }
+    ///*
     printf("Size: %d\n", counter);
     for (int i = 0; i < counter; i++) {
         printf("%d\t", primes_arr[i]);
     }
-    */
+    //*/
 
     // Step 3
     int calculated_arr[counter];
@@ -201,6 +214,17 @@ __uint128_t quadratic_sieve(__uint128_t x) {
         // of the array calculated_arr
     }
     x++; // to avoid errors
+
+    // Example matrix - will modify later with the correct one in 
+    int matrix[MAX_ROWS][MAX_COLS] = {
+        {1, 1, 0}, // x1^2 mod N
+        {0, 1, 1}, // x2^2 mod N
+        {1, 0, 1}  // x3^2 mod N
+    };
+    
+    int rows = 3; // Number of quadratic residues
+    int cols = 3; // Number of primes in the factor base
+
 
     return 0;
 }
