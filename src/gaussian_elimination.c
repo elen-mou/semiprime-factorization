@@ -5,8 +5,17 @@
 #define MAX_COLS 100
 
 // This function performs Gaussian elimination .
-// Note: mod 2 is the operation of this Gaussian elimination.
+// Note: mod 2 is the operation of this Gaussian elimination process.
 void gaussian_elimination_mod2(int matrix[MAX_ROWS][MAX_COLS], int rows, int cols) {
+
+    printf("Starting Matrix:\n");
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            printf("%d ", matrix[i][j]);
+        }
+        printf("\n");
+    }
+
     // Starts performing Gaussian elimination
     for (int col = 0; col < cols; col++) {
         // Finds a row with a 1 in the current column
@@ -69,13 +78,7 @@ int main() {
     int rows = 3; // Number of quadratic residues
     int cols = 3; // Number of primes in the factor base
 
-    printf("Starting Matrix:\n");
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            printf("%d ", matrix[i][j]);
-        }
-        printf("\n");
-    }
+
     
     // Perform Gaussian elimination modulo 2
     gaussian_elimination_mod2(matrix, rows, cols);
