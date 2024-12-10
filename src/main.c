@@ -9,6 +9,7 @@
 #define MAX_ROWS 100
 #define MAX_COLS 100
 
+// Finds the greatest common divisor of two __uint128_t-type numbers 
 __uint128_t gcd(__uint128_t num1, __uint128_t num2) {
     if (num1 % num2 == 0) {
         return num2;
@@ -17,7 +18,7 @@ __uint128_t gcd(__uint128_t num1, __uint128_t num2) {
     }
 }
 
-// This function checks if a __uint128_t-type number is prime
+// Checks if a __uint128_t-type number is prime
 int is_prime(int n) {
     if (n <= 1) return 0;
     if (n <= 3) return 1;
@@ -30,20 +31,20 @@ int is_prime(int n) {
     return 1;
 }
 
-// This function checks if an int-type number is prime
-int is_prime_uint128(int n) {
+// Checks if an int-type number is prime
+int is_prime_uint128(__uint128_t n) {
     if (n <= 1) return 0;
     if (n <= 3) return 1;
     if (n % 2 == 0 || n % 3 == 0) return 0;
 
-    for (int i = 5; i * i <= n; i += 6) {
+    for (__uint128_t i = 5; i * i <= n; i += 6) {
         if (n % i == 0) return 0;
         if (n % (i + 2) == 0) return 0;
     }
     return 1;
 }
 
-// This function converts a string to a __uint128_t-type number
+// Converts a string to a __uint128_t-type number
 __uint128_t str_to_uint128(const char *str) {
     __uint128_t result = 0;
     while (*str) {
@@ -57,7 +58,7 @@ __uint128_t str_to_uint128(const char *str) {
     return result;
 }
 
-// This function prints a __uint128_t-type number
+// Prints a __uint128_t-type number
 void print_uint128(__uint128_t value) {
     if (value == 0) {
         printf("0");
@@ -73,13 +74,24 @@ void print_uint128(__uint128_t value) {
     printf("%s", &buffer[i + 1]);
 }
 
-// This function checks if a number is within the range [0, 2^127]
+// Checks if a __uint128_t-number is within the range [0, 2^127]
 int is_within_range(__uint128_t num) {
     __uint128_t max_value = ((__uint128_t)1 << 127); 
     return num <= max_value;  // Allow 2^127 as valid
 }
 
-// This function performs trial division function without unrolling
+/*
+int prod_first_factors(__uint128_tv n) {
+    for (unsigned long long i = 2; i * i <= n; i++) {
+        if (is_prime(i) && n%i == 0) {
+            for i 
+        }
+    }
+
+}
+*/
+
+// Performs trial division function without unrolling
 // what's unrolling?
 __uint128_t trial_division(__uint128_t x) {
     printf("Trial division\n");
@@ -95,7 +107,7 @@ __uint128_t trial_division(__uint128_t x) {
     return x;  // If no factor is found, return x itself (meaning it's prime)
 }
 
-// This function performs heel Factorization - 
+// Performs the Wheel Factorization method - 
 // Skips numbers divisible by 2, 3, or 5
 __uint128_t wheel_factorization(__uint128_t x) {
     printf("Wheel factorization\n");
@@ -132,8 +144,9 @@ __uint128_t wheel_factorization(__uint128_t x) {
     return x;
 }
 
+// Performs the Quadratic Sieve Factorization method
 __uint128_t quadratic_sieve(__uint128_t N) {
-    printf("Quadratic sieve\n");
+    printf("Quadratic sieve\n"); // test print
     /*
     For numbers with aprox. 20 to 40 digits, the best value for B
     in order to find B-smooth numbers is about 30 to 50. So the 
@@ -182,10 +195,10 @@ __uint128_t quadratic_sieve(__uint128_t N) {
                      // BUT WE DONT KNOW THATTTT - SO MALLOC
     
     int counter = 0;
-    for (int i = 2; i <= B; i++) {
+    for (int i = 2; i <= B; i++) { // Starting from 2 because 0, 1 are not primes
         if (is_prime(i)) {
             counter ++; // If a number from 2-53 is prime, 
-                        // the total count of counters is imcreased by 1.
+                        // the value of counter is increased by 1.
         }
     }
 
@@ -240,7 +253,7 @@ __uint128_t quadratic_sieve(__uint128_t N) {
     for (int i = 0; i < counter; i++) {
         // find the square and do mod 2. The result is the i-th element
         // of the array calculated_arr
-        
+        calculated_arr[i] = (int)pow(primes_arr[i], 2) % N;
     }
 
     
@@ -261,8 +274,7 @@ __uint128_t quadratic_sieve(__uint128_t N) {
     return 0;
 }
 
-
-// Function to factorize the semiprime using various methods, 
+// Factorizes the semiprime using various methods, 
 // depending on its size.
 int factorize(__uint128_t x) {
     unsigned long long factor = 0; // Initialized so as not to get a warning
@@ -301,23 +313,18 @@ int factorize(__uint128_t x) {
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        printf("Usage: %s <semiprime>\n", argv[0]);
+        printf("Usage: %s <semiprime>\n", argv[0]); 
         return 1;
     }
 
-    // Convert the string argument to a __uint128_t
+    // Converting the string argument to a __uint128_t
     __uint128_t semiprime = str_to_uint128(argv[1]);
 
-    // Check if the number is within the range [0, 2^127]
+    // Checking if the number is within the range [0, 2^127]
     if (!is_within_range(semiprime)) {
         printf("Input out of range, valid semiprime range is [0, 2^127].\n");
         return 1;
     }
-
-    // Test print
-    printf("Input: ");
-    print_uint128(semiprime);
-    printf("\n");
 
     if (factorize(semiprime) == 1) return 1;
     else return 0;

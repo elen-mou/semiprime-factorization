@@ -72,6 +72,38 @@ int main() {
 }
 */
 
-__uint128_t prod_first_factors(__uint128_t n) {
-    for (__uint128_t i = 2; i <= )
+int is_prime_uint128(__uint128_t n) {
+    if (n <= 1) return 0;
+    if (n <= 3) return 1;
+    if (n % 2 == 0 || n % 3 == 0) return 0;
+
+    for (__uint128_t i = 5; i * i <= n; i += 6) {
+        if (n % i == 0) return 0;
+        if (n % (i + 2) == 0) return 0;
+    }
+    return 1;
+}
+
+int B_prime_finder(n) {
+    for (int i = 2; i * i <= n; i++) {
+        if (is_prime(i)) {
+             
+        }
+    }
+}
+int is_b_smooth(int n) {
+
+}
+int prod_first_factors(__uint128_t n) {
+    for (int i = 2; i * i <= n; i++) {
+        if (is_prime(i) && n%i == 0) {
+            for i 
+        }
+    }
+
+}
+
+
+int main() {
+    printf("%d\n", is_prime_uint128(16031564));
 }
