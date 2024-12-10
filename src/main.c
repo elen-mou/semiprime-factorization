@@ -18,7 +18,7 @@ __uint128_t gcd(__uint128_t num1, __uint128_t num2) {
     }
 }
 
-// Checks if a __uint128_t-type number is prime
+// Checks if an int-type number is prime
 int is_prime(int n) {
     if (n <= 1) return 0;
     if (n <= 3) return 1;
@@ -31,7 +31,7 @@ int is_prime(int n) {
     return 1;
 }
 
-// Checks if an int-type number is prime
+// Checks if a __uint128_t-type number is prime
 int is_prime_uint128(__uint128_t n) {
     if (n <= 1) return 0;
     if (n <= 3) return 1;
