@@ -6,38 +6,39 @@
 #include <stdbool.h>
 #include <math.h>
 
-void print_uint128(__uint128_t value);
-__uint128_t str_to_uint128(const char *str);
-int string_check(const char *str);
-int factorize_128(__uint128_t x);
-int factorize(long long unsigned x);
-__uint128_t gcd_128(__uint128_t num1, __uint128_t num2);
-long long unsigned gcd(long long unsigned num1, long long unsigned num2);
-bool prime_128(__uint128_t x);
-bool prime(long long unsigned x);
-long long unsigned trial_division(long long unsigned x);
-__uint128_t quadratic_sieve_128(__uint128_t x);
-long long unsigned quadratic_sieve(long long unsigned x);
+void print_uint128(__uint128_t value); // print variables of type uint128 (works for signed to)
+__uint128_t str_to_uint128(const char *str); // convert a string to a uint128 variable (also checks for letters in the string)
+int string_check(const char *str); // checks the string to determine if it is invalid (empty or exceeds limit [0,2^127]), a number that can fit into 64 bits or one that can fit in 128 bits
+int factorize_128(__uint128_t x); // starts the factorising process for factor of type uint128
+int factorize(long long unsigned x); // starts the factorising process for factor of type long long unsigned
+__uint128_t gcd_128(__uint128_t num1, __uint128_t num2); // Greatest Common Divisor for uint128
+long long unsigned gcd(long long unsigned num1, long long unsigned num2); // Greatest Common Divisor for long long unsigned
+bool prime_128(__uint128_t x); // checks if number is prime (128 bit version)
+bool prime(long long unsigned x); // checks if number is prime (64 bit version)
+long long unsigned trial_division(long long unsigned x); // Trial Division method to factorize numbers within range [0, 10^6]
+long long unsigned wheel_factorization(long long unsigned x); // Wheel Factorisation method to factorize numbers within range [10^6 + 1, 10^8]
+__uint128_t quadratic_sieve_128(__uint128_t x); // Quadratic Sieve Method to factorize numbers withtin range [2^63, 2^127]
+long long unsigned quadratic_sieve(long long unsigned x); // Quadratic Sieve Method to factorize numbers withtin range [10^8 + 1, 2^63 - 1] (up to limit of llu)
 
 int main(int argc, char *argv[]) {
+    // check if user did not provide only 1 input
     if (argc != 2) {
-        printf("Usage: %s <semiprime>\n", argv[0]);
+        printf("Usage: %s <semiprime>\n", argv[0]); //argv[0] => name of executable program
         return 1;
     }
 
-    int bit_range = string_check(argv[1]);
-    if (bit_range == 0) {
+    int bit_range = string_check(argv[1]); //store the value of the string_check function (0,1 or 2)
+    if (bit_range == 0) { // 0 for invalid input
         return 1;
-    } else if (bit_range == 1) {
-        long long unsigned semiprime = atoll(argv[1]);
-        if (factorize(semiprime) == 1) return 1;
-        else return 0;
-    } else if (bit_range == 2) {
-        __uint128_t semiprime = str_to_uint128(argv[1]);
-        if (factorize_128(semiprime) == 1) return 1;
-        else return 0;
-    } else return 1; // just in case
-    
+    } else if (bit_range == 1) { // 1 for semipime that fits into long long unsigned
+        long long unsigned semiprime = atoll(argv[1]); // convert string into llu
+        if (factorize(semiprime) == 1) return 1; // failed to factorize
+        else return 0; // factorisation successful
+    } else if (bit_range == 2) { // 2 for semipime that fits into uint128 and not long long unsigned
+        __uint128_t semiprime = str_to_uint128(argv[1]); // convert string into uint128
+        if (factorize_128(semiprime) == 1) return 1; // failed to factorize
+        else return 0; // factorisation successful
+    } else return 1; // just in case anything goes wrong (0% chance)
 }
 
 void print_uint128(__uint128_t value) {
@@ -181,9 +182,264 @@ __uint128_t quadratic_sieve_128(__uint128_t x) {
     return 0;
 }
 
-long long unsigned quadratic_sieve(long long unsigned x) {
-    x++;
+// Function to perform Gaussian elimination over GF(2)
+int gaussian_elimination(int** matrix, int num_rows, int num_cols, int* solution_vector) {
+    // Initialize solution vector
+    for (int i = 0; i < num_cols; i++) {
+        solution_vector[i] = 0;  // Start with all zeros
+    }
+
+    // Perform Gaussian elimination
+    int row = 0;
+    for (int col = 0; col < num_cols; col++) {
+        // Find the row with a 1 in the current column
+        int pivot_row = -1;
+        for (int i = row; i < num_rows; i++) {
+            if (matrix[i][col] == 1) {
+                pivot_row = i;
+                break;
+            }
+        }
+
+        if (pivot_row == -1) {
+            continue; // No 1 found, move to the next column
+        }
+
+        // Swap rows to move pivot_row to the current row
+        if (pivot_row != row) {
+            for (int j = 0; j < num_cols; j++) {
+                int temp = matrix[row][j];
+                matrix[row][j] = matrix[pivot_row][j];
+                matrix[pivot_row][j] = temp;
+            }
+        }
+
+        // Eliminate all 1s in the current column below the pivot
+        for (int i = row + 1; i < num_rows; i++) {
+            if (matrix[i][col] == 1) {
+                for (int j = 0; j < num_cols; j++) {
+                    matrix[i][j] ^= matrix[row][j]; // XOR operation in GF(2)
+                }
+            }
+        }
+
+        row++;
+    }
+
+    // The solution vector corresponds to the non-zero rows in the reduced matrix
+    // A non-trivial solution will have some ones in it
+    for (int i = 0; i < num_rows; i++) {
+        solution_vector[i] = matrix[i][num_cols - 1]; // Store the last column of the matrix as solution
+    }
+
     return 0;
+}
+
+// Function to construct the matrix of exponent vectors
+int** build_exponent_matrix(long long unsigned* q_values, int num_candidates, int* factor_base, int fb_size, int** exponent_vectors) {
+    // Suppress unused parameter warnings
+    (void)q_values;
+    (void)factor_base;
+
+    // Allocate memory for the matrix
+    int** matrix = malloc(num_candidates * sizeof(int*));
+    if (!matrix) {
+        fprintf(stderr, "Memory allocation failed for exponent matrix\n");
+        exit(1);
+    }
+
+    // Allocate memory for each row of the matrix
+    for (int i = 0; i < num_candidates; i++) {
+        matrix[i] = malloc(fb_size * sizeof(int));
+        if (!matrix[i]) {
+            fprintf(stderr, "Memory allocation failed for row %d in matrix\n", i);
+            exit(1);
+        }
+
+        // Copy exponent vectors into the matrix
+        for (int j = 0; j < fb_size; j++) {
+            matrix[i][j] = exponent_vectors[i][j];  // Modulo 2 exponents
+        }
+    }
+
+    return matrix;
+}
+
+// Function to factor Q(x) using the primes in the factor base
+void factor_qx(long long unsigned qx, int* factor_base, int fb_size, int* exponent_vector) {
+    for (int i = 0; i < fb_size; i++) {
+        long long unsigned p = factor_base[i];
+
+        // Check if p divides qx (modulo p)
+        int exponent = 0;
+        while (qx % p == 0) {
+            qx /= p;
+            exponent++;
+        }
+
+        // Update the exponent vector (modulo 2)
+        exponent_vector[i] = exponent % 2; // Only care about exponents modulo 2
+    }
+}
+
+// Function to perform the sieve step
+void sieve(long long unsigned* q_values, int num_candidates, int* factor_base, int fb_size) {
+    // Create an array to store the exponent vectors for each Q(x)
+    int** exponent_vectors = malloc(num_candidates * sizeof(int*));
+    if (!exponent_vectors) {
+        fprintf(stderr, "Memory allocation failed for exponent vectors\n");
+        exit(1);
+    }
+
+    for (int i = 0; i < num_candidates; i++) {
+        exponent_vectors[i] = malloc(fb_size * sizeof(int));
+        if (!exponent_vectors[i]) {
+            fprintf(stderr, "Memory allocation failed for exponent vector %d\n", i);
+            exit(1);
+        }
+    }
+
+    // Factor each Q(x) and update the exponent vectors
+    for (int i = 0; i < num_candidates; i++) {
+        factor_qx(q_values[i], factor_base, fb_size, exponent_vectors[i]);
+    }
+
+    // At this point, exponent_vectors contains the factorization of each Q(x) modulo 2
+    // Print the exponent vectors for verification (optional)
+    for (int i = 0; i < num_candidates; i++) {
+        printf("Exponent vector for Q(x) = %llu: ", q_values[i]);
+        for (int j = 0; j < fb_size; j++) {
+            printf("%d ", exponent_vectors[i][j]);
+        }
+        printf("\n");
+    }
+
+    // Free memory
+    for (int i = 0; i < num_candidates; i++) {
+        free(exponent_vectors[i]);
+    }
+    free(exponent_vectors);
+}
+
+// Modular Exponentiation
+long long unsigned mod_exp(long long unsigned base, long long unsigned exp, long long unsigned mod) {
+    long long unsigned result = 1;
+    base = base % mod;
+    while (exp > 0) {
+        if (exp % 2 == 1) result = (result * base) % mod;
+        base = (base * base) % mod;
+        exp /= 2;
+    }
+    return result;
+}
+
+// Dynamic Smoothness Bound Calculation
+long long unsigned dynamic_smoothness_bound(long long unsigned n) {
+    double ln_n = log(n);         // Natural log (ln(n))
+    double ln_ln_n = log(ln_n);  // Natural log of ln(n)
+    long long unsigned B = (long long unsigned)exp(sqrt(ln_n * ln_ln_n) / 2.0); // Quadratic Sieve heuristic
+    return B;
+}
+
+// Factor Base Generation
+int* factor_base_generation(long long unsigned n, int B, int* size) {
+    int* factor_base = malloc(B * sizeof(int));
+    if (!factor_base) {
+        fprintf(stderr, "Memory allocation failed for factor base\n");
+        exit(1);
+    }
+
+    int count = 0;
+    for (int p = 2; p <= B; p++) {
+        if (prime(p)) {  // Check if p is prime
+            // Check if p is a quadratic residue modulo n
+            long long unsigned residue = mod_exp(n % p, (p - 1) / 2, p);
+            if (residue == 1) {  // Quadratic residue
+                factor_base[count++] = p;
+            }
+        }
+    }
+
+    *size = count;  // Update size with the count of primes in the factor base
+    return factor_base;
+}
+
+// Quadratic Sieve Function
+long long unsigned quadratic_sieve(long long unsigned x) {
+    // Step 1: Calculate Smoothness Bound
+    long long unsigned B = dynamic_smoothness_bound(x);
+    printf("Smoothness bound (B): %llu\n", B);
+
+    // Step 2: Generate Factor Base
+    int fb_size;
+    int* factor_base = factor_base_generation(x, B, &fb_size);
+    printf("Factor base generated with %d primes.\n", fb_size);
+
+    // Step 3: Generate Candidates and Q(x) Values
+    long long unsigned sqrt_x = (long long unsigned)sqrtl((long double)x); // Initial sqrt of x
+    int range = 10 * fb_size; // Number of candidates (adjustable)
+    long long unsigned* candidates = malloc(range * sizeof(long long unsigned));
+    long long unsigned* q_values = malloc(range * sizeof(long long unsigned));
+
+    for (int k = 0; k < range; k++) {
+        candidates[k] = sqrt_x + k;              // Generate x-values
+        q_values[k] = candidates[k] * candidates[k] - x; // Compute Q(x) = x^2 - x
+    }
+
+    // Step 4: Perform sieve step
+    sieve(q_values, range, factor_base, fb_size);
+
+    // Step 5: Build exponent matrix
+    int** exponent_vectors = malloc(range * sizeof(int*));
+    for (int i = 0; i < range; i++) {
+        exponent_vectors[i] = malloc(fb_size * sizeof(int));
+    }
+    exponent_vectors = build_exponent_matrix(q_values, range, factor_base, fb_size, exponent_vectors);
+
+    // Step 6: Perform Gaussian Elimination on the exponent matrix
+    int* solution_vector = malloc(range * sizeof(int));
+    if (!solution_vector) {
+        fprintf(stderr, "Memory allocation failed for solution vector\n");
+        exit(1);
+    }
+    gaussian_elimination(exponent_vectors, range, fb_size, solution_vector);
+
+    // Print the solution vector (optional for debugging)
+    printf("Solution vector (dependencies):\n");
+    for (int i = 0; i < range; i++) {
+        printf("%d ", solution_vector[i]);
+    }
+    printf("\n");
+
+    // Step 7: Identify the Q(x) values contributing to the dependency
+    // The solution vector contains 1's at positions where the dependency exists
+    long long unsigned product = 1;
+    for (int i = 0; i < range; i++) {
+        if (solution_vector[i] == 1) {
+            product *= q_values[i];
+        }
+    }
+
+    // Step 8: Compute the GCD of the product with n
+    long long unsigned factor = gcd(product, x);  // This gives a factor of x
+    if (factor == 1 || factor == x) {
+        printf("No non-trivial factor found\n");
+        return 1;
+    } else {
+        printf("Non-trivial factor found: %llu\n", factor);
+        return factor;
+    }
+
+    // Free allocated memory
+    free(factor_base);
+    free(candidates);
+    free(q_values);
+    free(solution_vector);
+    for (int i = 0; i < range; i++) {
+        free(exponent_vectors[i]);
+    }
+    free(exponent_vectors);
+
 }
 
 // Function to factorize the semiprime using trial division
@@ -191,7 +447,7 @@ int factorize_128(__uint128_t x) {
     __uint128_t factor = quadratic_sieve_128(x);
     
     if (factor == x) {
-        // If x is prime or no factor found (won't happen for semiprimes 'cause I said so)
+        // If x is prime or no factor found (woan't happen for semiprimes 'cause I said so)
         return 1;
     }
 
