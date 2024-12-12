@@ -189,8 +189,7 @@ int gaussian_elimination(int** matrix, int num_rows, int num_cols, int* solution
         solution_vector[i] = 0;  // Start with all zeros
     }
 
-    // Perform Gaussian elimination
-    int row = 0;
+    int row = 0;  // Track the current row
     for (int col = 0; col < num_cols; col++) {
         // Find the row with a 1 in the current column
         int pivot_row = -1;
@@ -202,7 +201,7 @@ int gaussian_elimination(int** matrix, int num_rows, int num_cols, int* solution
         }
 
         if (pivot_row == -1) {
-            continue; // No 1 found, move to the next column
+            continue; // No 1 found in this column, skip to next column
         }
 
         // Swap rows to move pivot_row to the current row
@@ -214,26 +213,36 @@ int gaussian_elimination(int** matrix, int num_rows, int num_cols, int* solution
             }
         }
 
-        // Eliminate all 1s in the current column below the pivot
+        // Eliminate all 1s below the pivot row in the current column
         for (int i = row + 1; i < num_rows; i++) {
             if (matrix[i][col] == 1) {
                 for (int j = 0; j < num_cols; j++) {
-                    matrix[i][j] ^= matrix[row][j]; // XOR operation in GF(2)
+                    matrix[i][j] ^= matrix[row][j];  // XOR operation mod 2 (elimination)
                 }
             }
         }
 
+        // Move to the next row
         row++;
     }
 
-    // The solution vector corresponds to the non-zero rows in the reduced matrix
-    // A non-trivial solution will have some ones in it
-    for (int i = 0; i < num_rows; i++) {
-        solution_vector[i] = matrix[i][num_cols - 1]; // Store the last column of the matrix as solution
+    // Back substitution (to fill in the solution_vector)
+    for (int i = num_rows - 1; i >= 0; i--) {
+        // If the row has a leading 1, assign the corresponding value in the solution_vector
+        if (matrix[i][i] == 1) {
+            solution_vector[i] = 1;
+            // Eliminate the 1 in the current column for all rows above
+            for (int j = i - 1; j >= 0; j--) {
+                if (matrix[j][i] == 1) {
+                    matrix[j][i] ^= matrix[i][i];  // XOR to eliminate
+                }
+            }
+        }
     }
 
-    return 0;
+    return 0;  // Successfully completed Gaussian elimination
 }
+
 
 // Function to construct the matrix of exponent vectors
 int** build_exponent_matrix(long long unsigned* q_values, int num_candidates, int* factor_base, int fb_size, int** exponent_vectors) {
@@ -265,21 +274,20 @@ int** build_exponent_matrix(long long unsigned* q_values, int num_candidates, in
     return matrix;
 }
 
-// Function to factor Q(x) using the primes in the factor base
+// Debug print for factor_qx function
 void factor_qx(long long unsigned qx, int* factor_base, int fb_size, int* exponent_vector) {
+    printf("Factoring %llu: ", qx);
     for (int i = 0; i < fb_size; i++) {
         long long unsigned p = factor_base[i];
-
-        // Check if p divides qx (modulo p)
         int exponent = 0;
         while (qx % p == 0) {
             qx /= p;
             exponent++;
         }
-
-        // Update the exponent vector (modulo 2)
-        exponent_vector[i] = exponent % 2; // Only care about exponents modulo 2
+        exponent_vector[i] = exponent % 2;
+        printf("%d ", exponent_vector[i]);
     }
+    printf("\n");
 }
 
 // Function to perform the sieve step
@@ -335,8 +343,8 @@ long long unsigned mod_exp(long long unsigned base, long long unsigned exp, long
 
 // Dynamic Smoothness Bound Calculation
 long long unsigned dynamic_smoothness_bound(long long unsigned n) {
-    double ln_n = log(n);         // Natural log (ln(n))
-    double ln_ln_n = log(ln_n);  // Natural log of ln(n)
+    long double ln_n = log(n);         // Natural log (ln(n))
+    long double ln_ln_n = log(ln_n);  // Natural log of ln(n)
     long long unsigned B = (long long unsigned)exp(sqrt(ln_n * ln_ln_n) / 2.0); // Quadratic Sieve heuristic
     return B;
 }
@@ -419,17 +427,6 @@ long long unsigned quadratic_sieve(long long unsigned x) {
             product *= q_values[i];
         }
     }
-
-    // Step 8: Compute the GCD of the product with n
-    long long unsigned factor = gcd(product, x);  // This gives a factor of x
-    if (factor == 1 || factor == x) {
-        printf("No non-trivial factor found\n");
-        return 1;
-    } else {
-        printf("Non-trivial factor found: %llu\n", factor);
-        return factor;
-    }
-
     // Free allocated memory
     free(factor_base);
     free(candidates);
@@ -440,6 +437,15 @@ long long unsigned quadratic_sieve(long long unsigned x) {
     }
     free(exponent_vectors);
 
+    // Step 8: Compute the GCD of the product with n
+    long long unsigned factor = gcd(product, x);  // This gives a factor of x
+    if (factor > 1 && factor < x) {
+        printf("Non-trivial factor found: %llu\n", factor);
+        return factor;
+    } else {
+        printf("No non-trivial factor found\n");
+        return 1;  // No factor found
+    }
 }
 
 // Function to factorize the semiprime using trial division
