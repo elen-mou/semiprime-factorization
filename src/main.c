@@ -5,11 +5,7 @@
 #include <ctype.h>
 #include <math.h>
 
-// I'll change these
-#define MAX_ROWS 100
-#define MAX_COLS 100
-
-// Finds the greatest common divisor of two __uint128_t-type numbers 
+// This function finds the greatest common divisor of two __uint128_t-type numbers.
 __uint128_t gcd(__uint128_t num1, __uint128_t num2) {
     if (num1 % num2 == 0) {
         return num2;
@@ -18,7 +14,7 @@ __uint128_t gcd(__uint128_t num1, __uint128_t num2) {
     }
 }
 
-// Checks if an int-type number is prime
+// This function checks if an int-type number is prime.
 int is_prime(int n) {
     if (n <= 1) return 0;
     if (n <= 3) return 1;
@@ -30,7 +26,7 @@ int is_prime(int n) {
     return 1;
 }
 
-// Checks if a __uint128_t-type number is prime
+// This function checks if a __uint128_t-type number is prime.
 int is_prime_uint128(__uint128_t n) {
     if (n <= 1) return 0;
     if (n <= 3) return 1;
@@ -43,7 +39,7 @@ int is_prime_uint128(__uint128_t n) {
     return 1;
 }
 
-// Converts a string to a __uint128_t-type number
+// This function converts a string to a __uint128_t-type number.
 __uint128_t str_to_uint128(const char *c) {
     __uint128_t result = 0;
     while (*c) {
@@ -57,7 +53,7 @@ __uint128_t str_to_uint128(const char *c) {
     return result;
 }
 
-// Prints a __uint128_t-type number
+// This function prints a __uint128_t-type number.
 void print_uint128(__uint128_t value) {
     if (value == 0) {
         printf("0");
@@ -73,13 +69,13 @@ void print_uint128(__uint128_t value) {
     printf("%s", &buffer[i + 1]);
 }
 
-// Checks if a __uint128_t-number is within the range [0, 2^127]
+// This function checks if a __uint128_t-number is within the range [0, 2^127].
 int is_within_range(__uint128_t num) {
     __uint128_t max_value = ((__uint128_t)1 << 127); 
     return num <= max_value;  // Allow 2^127 as valid
 }
 
-// Performs trial division function without unrolling
+// This function performs trial division function without unrolling
 // what's unrolling?
 __uint128_t trial_division(__uint128_t x) {
     printf("Trial division\n");
@@ -95,8 +91,8 @@ __uint128_t trial_division(__uint128_t x) {
     return x;  // If no factor is found, return x itself (meaning it's prime)
 }
 
-// Performs the Wheel Factorization method - 
-// Skips numbers divisible by 2, 3, or 5
+// This function performs the Wheel Factorization method - 
+// Skips numbers divisible by 2, 3, or 5.
 __uint128_t wheel_factorization(__uint128_t x) {
     printf("Wheel factorization\n");
     // Small primes to form the wheel (2, 3, 5)
@@ -132,7 +128,7 @@ __uint128_t wheel_factorization(__uint128_t x) {
     return x;
 }
 
-//  This function checks if the number x is B-smooth 
+// This function checks if the number x is B-smooth .
 int is_bsmooth(__uint128_t x, int *primes_arr, int prime_count) {
     for (int i = 0; i < prime_count; i++) {
         while (x % primes_arr[i] == 0) {
@@ -145,7 +141,7 @@ int is_bsmooth(__uint128_t x, int *primes_arr, int prime_count) {
     return (x == 1);  // if x is successfully reduced to 1, it's B-smooth
 }
 
-// This function performs Gaussian elimination over Z2 (mod 2)
+// This function performs Gaussian elimination over Z2 (mod 2).
 void gaussian_elimination(int **matr, int m, int n) {
     for (int i = 0; i < m; i++) {
         int pivot_row = i;
@@ -193,7 +189,7 @@ void gaussian_elimination(int **matr, int m, int n) {
     }
 }
 
-// Performs the Quadratic Sieve Factorization method
+// This function performs the Quadratic Sieve Factorization method
 __uint128_t quadratic_sieve(__uint128_t N) {
     printf("Quadratic sieve\n"); // test print
     /*
@@ -232,15 +228,10 @@ __uint128_t quadratic_sieve(__uint128_t N) {
     6. The solution vectors show the factors.
     */
 
-    // Step 1
-    printf("Step 3\n");
-
-    // Initializing B as 53, according to which the primes list will be formed.
-    int B = 53; 
-    printf("%d",B);
+    // Step 1: Initializing B as 53, according to which the primes list will be formed.
+    int B = 53;
     
     // Step 2: Finding all primes up to B and storing them in an array.
-    printf("Step 2\n");
     // There are 16 primes before 53, including 53.
     // BUT WE DONT KNOW THATTTT - SO MALLOC
     
@@ -254,7 +245,7 @@ __uint128_t quadratic_sieve(__uint128_t N) {
 
     // Allocate memory dynamically for primes array
     int *primes_arr = (int*)malloc(primes_arr_counter * sizeof(int));
-    printf("BB\n");
+
     if (primes_arr == NULL) {
         printf("Memory allocation failed\n");
         return 1;
@@ -271,7 +262,6 @@ __uint128_t quadratic_sieve(__uint128_t N) {
 
     
     // Step 3: Calculating x^2 mod N for each x in the range [2, N]
-    printf("Step 3\n");
     int bsmooth_counter = 0;
 
     int *bsmooth_arr = (int*)malloc(primes_arr_counter * sizeof(int));
@@ -281,10 +271,16 @@ __uint128_t quadratic_sieve(__uint128_t N) {
         return 1;
     }
 
-    for (__uint128_t x = 2; x < N; x++) {
+    // Setting a reasonable limit for x based on the size of N.
+    __uint128_t max_x = 10000; 
+    for (__uint128_t x = 2; x < N && x < max_x; x++) {
         __uint128_t squared_mod = (x * x) % N;
         printf("x: %llu, x^2 mod N: %llu\n", (unsigned long long)x, (unsigned long long)squared_mod);
         
+        if (bsmooth_counter > primes_arr_counter) {
+            break;
+        }
+
         // Add logic to check if squared_mod is B-smooth and then store it in bsmooth_arr
         if (is_bsmooth(squared_mod, primes_arr, primes_arr_counter)) {
             bsmooth_arr[bsmooth_counter++] = squared_mod;
@@ -303,29 +299,18 @@ __uint128_t quadratic_sieve(__uint128_t N) {
     }
     */
 
-
-    N++; // to avoid errors
-    printf("FF\n");
-
-    
     // Step 4: Setting up a matrix for linear algebra steps:
     // Building the matrix of quadratic residues modulo N.
     // Each row corresponds to an x^2 mod N value, and each column 
     // corresponds to a prime in the factor base.
-    
-    
-    /*
-    int rows = 3; // Number of quadratic residues
-    int cols = 3; // Number of primes in the factor base
-    */
 
-    // Creating the matrix which holds the parity of
-    // the exponents of the factors mod 2.
+
+    // Creating the matrix which holds the parity of the exponents of the factors mod 2.
     // It has m rows and n columns, where:
     int m = bsmooth_counter;
     int n = primes_arr_counter;
     
-    int **matrix = (int **)malloc(m * sizeof(int *));  // Allocate rows
+    int **matrix = (int **)malloc(m * sizeof(int *));  // allocating rows
     if (matrix == NULL) {
         printf("Memory allocation failed for matrix rows\n");
         return 1;
@@ -333,7 +318,7 @@ __uint128_t quadratic_sieve(__uint128_t N) {
 
     // Allocating columns for each row
     for (int i = 0; i < m; i++) {
-        matrix[i] = (int *)malloc(n * sizeof(int));  // Allocate columns (primes count)
+        matrix[i] = (int *)malloc(n * sizeof(int));  // allocating columns (primes count)
         if (matrix[i] == NULL) {
             printf("Memory allocation failed for matrix columns\n");
             return 1;
@@ -345,6 +330,20 @@ __uint128_t quadratic_sieve(__uint128_t N) {
     // that give us potential factors.
     gaussian_elimination(matrix, m, n);
 
+    if (is_prime_uint128(factor) && is_prime_uint128(q)) {  // Both factors must be prime
+        // Prints factors in ascending order
+
+        // Need to check the max range of factors
+        if (factor < q) {
+            printf("Factors: %llu %llu\n", factor, q);
+        } else {
+            printf("Factors: %llu %llu\n", q, factor);
+        }
+        return 0;  // Return 0 to indicate successful factorization
+    } else {
+        printf("crying\n");
+    }
+
 
     free(primes_arr);
     free(bsmooth_arr);
@@ -352,8 +351,8 @@ __uint128_t quadratic_sieve(__uint128_t N) {
     return 0;
 }
 
-// Factorizes the semiprime using various methods, 
-// depending on its size.
+// This function factorizes a given semiprime 
+// using various methods, depending on its size.
 int factorize(__uint128_t x) {
     unsigned long long factor = 0; // Initialized so as not to get a warning
     if (x <= pow(10,6)) {
@@ -384,6 +383,7 @@ int factorize(__uint128_t x) {
         }
         return 0;  // Return 0 to indicate successful factorization
     }
+    printf("here!\n");
     printf("This number is not a semiprime.\n");
     return 1;  // Return 1 if factorization fails, thus indicating
                // that the number is not a semiprime
