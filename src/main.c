@@ -145,6 +145,54 @@ int is_bsmooth(__uint128_t x, int *primes_arr, int prime_count) {
     return (x == 1);  // if x is successfully reduced to 1, it's B-smooth
 }
 
+// This function performs Gaussian elimination over Z2 (mod 2)
+void gaussian_elimination(int **matr, int m, int n) {
+    for (int i = 0; i < m; i++) {
+        int pivot_row = i;
+        // Find a row with a 1 in column i
+        for (int j = i + 1; j < m; j++) {
+            if (matr[j][i] == 1) {
+                pivot_row = j;
+                break;
+            }
+        }
+
+        // Swap the rows if necessary
+        if (pivot_row != i) {
+            for (int j = 0; j < n; j++) {
+                int temp = matr[i][j];
+                matr[i][j] = matr[pivot_row][j];
+                matr[pivot_row][j] = temp;
+            }
+        }
+
+        // Eliminate all entries below the pivot
+        for (int j = i + 1; j < m; j++) {
+            if (matr[j][i] == 1) {
+                for (int k = i; k < n; k++) {
+                    matr[j][k] ^= matr[i][k];  // XOR to eliminate the entry
+                }
+            }
+        }
+    }
+
+    // Backward substitution to find the solution
+    int *result_vector = (int*)malloc(m * sizeof(int));
+
+    if (result_vector == NULL) {
+        printf("Memory allocation failed\n");
+    } else {
+        for (int i = m - 1; i >= 0; i--) {
+            result_vector[i] = matr[i][n - 1];
+            for (int j = i + 1; j < m; j++) {
+                if (matr[i][j] == 1) {
+                    result_vector[i] ^= result_vector[j];  // XOR to solve
+                }
+            }
+        }
+    }
+}
+
 // Performs the Quadratic Sieve Factorization method
 __uint128_t quadratic_sieve(__uint128_t N) {
     printf("Quadratic sieve\n"); // test print
@@ -196,49 +244,39 @@ __uint128_t quadratic_sieve(__uint128_t N) {
     // There are 16 primes before 53, including 53.
     // BUT WE DONT KNOW THATTTT - SO MALLOC
     
-    int counter = 0;
+    int primes_arr_counter = 0;
     for (int i = 2; i <= B; i++) { // Starting from 2 because 0, 1 are not primes
         if (is_prime(i)) {
-            counter ++; // If a number from 2-53 is prime, 
+            primes_arr_counter ++; // If a number from 2-53 is prime, 
                         // the value of counter is increased by 1.
         }
     }
 
     // Allocate memory dynamically for primes array
-    primes_arr = (int*)malloc(counter * sizeof(int));
+    int *primes_arr = (int*)malloc(primes_arr_counter * sizeof(int));
     printf("BB\n");
     if (primes_arr == NULL) {
-        // Handle memory allocation failure
         printf("Memory allocation failed\n");
         return 1;
     }
 
     // Reset counter to 0 and fill the array with primes
-    counter = 0;
+    primes_arr_counter = 0;
     for (int i = 2; i <= B; i++) {
         if (is_prime(i)) {
-            primes_arr[counter] = i;
-            counter++;
+            primes_arr[primes_arr_counter] = i;
+            primes_arr_counter++;
         }
     }
 
-    /*
-    printf("Size: %d\n", counter);
-    printf("Primes up to %d: ", B);
-    for (int i = 0; i < counter; i++) {
-        printf("%d ", primes_arr[i]);
-    }
-    printf("\n");
-    */
     
     // Step 3: Calculating x^2 mod N for each x in the range [2, N]
     printf("Step 3\n");
     int bsmooth_counter = 0;
 
-    bsmooth_arr = (int*)malloc(counter * sizeof(int));
+    int *bsmooth_arr = (int*)malloc(primes_arr_counter * sizeof(int));
     
     if (primes_arr == NULL) {
-        // Handling memory allocation failure
         printf("Memory allocation failed\n");
         return 1;
     }
@@ -248,7 +286,7 @@ __uint128_t quadratic_sieve(__uint128_t N) {
         printf("x: %llu, x^2 mod N: %llu\n", (unsigned long long)x, (unsigned long long)squared_mod);
         
         // Add logic to check if squared_mod is B-smooth and then store it in bsmooth_arr
-        if (is_bsmooth(squared_mod)) {
+        if (is_bsmooth(squared_mod, primes_arr, primes_arr_counter)) {
             bsmooth_arr[bsmooth_counter++] = squared_mod;
         }
     }
@@ -259,22 +297,16 @@ __uint128_t quadratic_sieve(__uint128_t N) {
     // where N is the number we want to factorize, is B-smooth or not.
     // If it is, it is added in the dynamic array bsmooth[].
 
+    /*
     for (int x = 2; x <= B; x++) {
-        printf("Factors of %d:" (sqrt(x) % N)
+        printf("Factors of %d:" (sqrt(x) % N));
     }
+    */
 
 
     N++; // to avoid errors
     printf("FF\n");
 
-    /*
-    // Example matrix - will modify later with the correct one
-    int matrix[MAX_ROWS][MAX_COLS] = {
-        {1, 1, 0}, // x1^2 mod N
-        {0, 1, 1}, // x2^2 mod N
-        {1, 0, 1}  // x3^2 mod N
-    };
-    */
     
     // Step 4: Setting up a matrix for linear algebra steps:
     // Building the matrix of quadratic residues modulo N.
@@ -286,6 +318,33 @@ __uint128_t quadratic_sieve(__uint128_t N) {
     int rows = 3; // Number of quadratic residues
     int cols = 3; // Number of primes in the factor base
     */
+
+    // Creating the matrix which holds the parity of
+    // the exponents of the factors mod 2.
+    // It has m rows and n columns, where:
+    int m = bsmooth_counter;
+    int n = primes_arr_counter;
+    
+    int **matrix = (int **)malloc(m * sizeof(int *));  // Allocate rows
+    if (matrix == NULL) {
+        printf("Memory allocation failed for matrix rows\n");
+        return 1;
+    }
+
+    // Allocating columns for each row
+    for (int i = 0; i < m; i++) {
+        matrix[i] = (int *)malloc(n * sizeof(int));  // Allocate columns (primes count)
+        if (matrix[i] == NULL) {
+            printf("Memory allocation failed for matrix columns\n");
+            return 1;
+        }
+    }
+
+    // Step 5: Performing Gaussian elimination on the matrix to find dependencies.
+    // This algorithm will help find dependencies between rows
+    // that give us potential factors.
+    gaussian_elimination(matrix, m, n);
+
 
     free(primes_arr);
     free(bsmooth_arr);
